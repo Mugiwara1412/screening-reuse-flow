@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Screening Reuse — Interactive Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-alt: #f0f1f5;
+  --border: #e2e4ea;
+  --border-strong: #c8cbd4;
+  --accent: #4361ee;
+  --accent-light: #eef1ff;
+  --accent-dark: #3451d1;
+  --success: #0fa968;
+  --success-light: #eafaf2;
+  --warn: #e6930a;
+  --warn-light: #fef7ea;
+  --danger: #dc3545;
+  --danger-light: #fdeaec;
+  --purple: #7c3aed;
+  --purple-light: #f3eeff;
+  --text: #1a1d26;
+  --text-secondary: #5a5f72;
+  --text-dim: #8b90a0;
+  --serif: 'DM Serif Display', serif;
+  --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Top Bar ── */
+.topbar {
+  background: #1a1d26;
+  color: #fff;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-logo {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.topbar-logo span { color: var(--accent); }
+
+.topbar-badge {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(67,97,238,0.2);
+  color: #93a8f8;
+}
+
+.topbar-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Scenario Tabs ── */
+.scenario-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.scenario-tab {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 14px 20px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.scenario-tab:hover { color: var(--text); background: var(--surface-alt); }
+
+.scenario-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Step Navigation ── */
+.step-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.step-dots {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.step-dot.active { background: var(--accent); transform: scale(1.3); }
+.step-dot.completed { background: var(--success); }
+
+.nav-btn {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.nav-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.nav-btn.primary:hover { background: var(--accent-dark); }
+
+.step-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Three Panel Layout ── */
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 280px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 160px);
+}
+
+.panel {
+  padding: 24px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.panel:last-child { border-right: none; }
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.panel-icon.recruiter { background: var(--accent-light); }
+.panel-icon.system { background: var(--purple-light); }
+.panel-icon.candidate { background: var(--success-light); }
+
+.panel-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.panel-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.card-body { padding: 18px; }
+
+.card-body p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Status Badges ── */
+.badge {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.badge-invited { background: var(--accent-light); color: var(--accent); }
+.badge-progress { background: var(--warn-light); color: var(--warn); }
+.badge-completed { background: var(--success-light); color: var(--success); }
+.badge-reused { background: var(--purple-light); color: var(--purple); }
+.badge-pending { background: var(--surface-alt); color: var(--text-dim); }
+.badge-redo { background: var(--danger-light); color: var(--danger); }
+
+/* ── Email Mock ── */
+.email-mock {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.email-top-bar {
+  background: #f7f7f7;
+  padding: 8px 14px;
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.email-dot.r { background: #ff5f57; }
+.email-dot.y { background: #febc2e; }
+.email-dot.g { background: #28c840; }
+
+.email-meta {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.email-meta strong { color: var(--text); font-weight: 600; }
+
+.email-content {
+  padding: 20px 18px;
+}
+
+.email-subject {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+.email-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.email-text strong { color: var(--text); }
+
+.email-cta {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cta-blue { background: var(--accent); color: #fff; }
+.cta-blue:hover { background: var(--accent-dark); }
+.cta-outline { border: 1px solid var(--border-strong); color: var(--text-secondary); background: #fff; margin-left: 6px; }
+.cta-outline:hover { border-color: var(--accent); color: var(--accent); }
+.cta-green { background: var(--success); color: #fff; }
+
+.email-note {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--warn-light);
+  border-left: 3px solid var(--warn);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.75rem;
+  color: #7a5d10;
+}
+
+/* ── Recruiter Dashboard Mock ── */
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.dash-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+}
+
+.dash-table td {
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.dash-table tr.highlight {
+  background: var(--accent-light);
+}
+
+.dash-table tr.highlight-green {
+  background: var(--success-light);
+}
+
+.dash-table tr.highlight-purple {
+  background: var(--purple-light);
+}
+
+.candidate-name {
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.job-name {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.action-btn {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ── System Log ── */
+.system-panel {
+  background: #1a1d26;
+  color: #c8d0e0;
+  border-right: 1px solid #2a2d36;
+}
+
+.system-panel .panel-header {
+  border-bottom-color: #2a2d36;
+}
+
+.system-panel .panel-title { color: #e0e4ec; }
+.system-panel .panel-subtitle { color: #6b7280; }
+
+.log-entry {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  animation: fadeInUp 0.4s ease;
+}
+
+.log-entry.detect {
+  background: rgba(124,58,237,0.15);
+  border-left: 3px solid var(--purple);
+  color: #c4b5fd;
+}
+
+.log-entry.action {
+  background: rgba(67,97,238,0.15);
+  border-left: 3px solid var(--accent);
+  color: #93a8f8;
+}
+
+.log-entry.success {
+  background: rgba(15,169,104,0.15);
+  border-left: 3px solid var(--success);
+  color: #6ee7b7;
+}
+
+.log-entry.warn {
+  background: rgba(230,147,10,0.15);
+  border-left: 3px solid var(--warn);
+  color: #fcd34d;
+}
+
+.log-entry .log-time {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.log-entry .log-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.log-entry.detect .log-label { background: rgba(124,58,237,0.3); }
+.log-entry.action .log-label { background: rgba(67,97,238,0.3); }
+.log-entry.success .log-label { background: rgba(15,169,104,0.3); }
+.log-entry.warn .log-label { background: rgba(230,147,10,0.3); }
+
+/* ── Landing Page Mock ── */
+.landing-mock {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.landing-header {
+  background: linear-gradient(135deg, #1a1d26 0%, #2d3148 100%);
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.landing-logo {
+  font-family: var(--serif);
+  font-size: 1rem;
+}
+
+.landing-body {
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.landing-body h3 {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.landing-body p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.landing-details {
+  background: var(--surface-alt);
+  border-radius: 8px;
+  padding: 14px;
+  margin: 16px 0;
+  text-align: left;
+  font-size: 0.8rem;
+}
+
+.landing-details .detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.landing-details .detail-label { color: var(--text-dim); }
+.landing-details .detail-value { font-weight: 600; }
+
+.landing-cta {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.landing-cta.primary { background: var(--accent); color: #fff; }
+.landing-cta.primary:hover { background: var(--accent-dark); }
+
+/* ── Thank You Page ── */
+.thankyou-mock {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.thankyou-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--success-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 16px;
+}
+
+.thankyou-mock h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.thankyou-mock p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* ── Voice Call Mock ── */
+.call-mock {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1d26 0%, #2d3148 100%);
+  color: #fff;
+  text-align: center;
+  padding: 32px 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.call-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin: 0 auto 14px;
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(67,97,238,0.4); }
+  50% { box-shadow: 0 0 0 16px rgba(67,97,238,0); }
+}
+
+.call-mock h3 { font-size: 1rem; margin-bottom: 4px; }
+.call-mock p { font-size: 0.8rem; color: #9ca3af; margin-bottom: 16px; }
+
+.call-timer {
+  font-family: var(--mono);
+  font-size: 1.4rem;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.call-controls {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.call-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.call-btn.mute { background: rgba(255,255,255,0.1); color: #fff; }
+.call-btn.end { background: var(--danger); color: #fff; }
+.call-btn.end:hover { background: #c82333; }
+
+/* ── Redo Window Indicator ── */
+.redo-window {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--warn-light);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #7a5d10;
+  margin-top: 8px;
+}
+
+.redo-window .timer-icon { font-size: 1rem; }
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-dim);
+}
+
+.empty-state .icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  opacity: 0.4;
+}
+
+.empty-state p {
+  font-size: 0.82rem;
+}
+
+/* ── Scenario Description ── */
+.scenario-desc {
+  margin: 16px 32px;
+  padding: 14px 20px;
+  background: var(--accent-light);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--accent);
+  font-size: 0.85rem;
+  color: var(--accent-dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scenario-desc .desc-icon { font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Screening Reuse <span>Prototype</span></div>
+    <span class="topbar-badge">Interactive Demo</span>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size:0.75rem;color:#6b7280;">April 2026 &middot; Voice Agent Screening</span>
+  </div>
+</div>
+
+<div class="scenario-bar" id="scenarioBar"></div>
+<div class="scenario-desc" id="scenarioDesc"></div>
+
+<div class="step-nav">
+  <button class="nav-btn" id="prevBtn" onclick="prevStep()">← Back</button>
+  <span class="step-label" id="stepLabel"></span>
+  <div class="step-dots" id="stepDots"></div>
+  <button class="nav-btn primary" id="nextBtn" onclick="nextStep()">Next →</button>
+</div>
+
+<div class="panels">
+  <div class="panel" id="recruiterPanel">
+    <div class="panel-header">
+      <div class="panel-icon recruiter">👤</div>
+      <div>
+        <div class="panel-title">Recruiter View</div>
+        <div class="panel-subtitle">CRM Dashboard</div>
+      </div>
+    </div>
+    <div id="recruiterContent"></div>
+  </div>
+
+  <div class="panel system-panel" id="systemPanel">
+    <div class="panel-header">
+      <div class="panel-icon system">⚙️</div>
+      <div>
+        <div class="panel-title">System</div>
+        <div class="panel-subtitle">Behind the scenes</div>
+      </div>
+    </div>
+    <div id="systemContent"></div>
+  </div>
+
+  <div class="panel" id="candidatePanel">
+    <div class="panel-header">
+      <div class="panel-icon candidate">🧑</div>
+      <div>
+        <div class="panel-title">Candidate View</div>
+        <div class="panel-subtitle">Jane Doe's experience</div>
+      </div>
+    </div>
+    <div id="candidateContent"></div>
+  </div>
+</div>
+
+<script>
+const SCENARIOS = {
+  happy: {
+    id: 'happy',
+    label: 'A: Happy Path — Auto-Reuse',
+    desc: 'Jane applies to 2 jobs with the same questionnaire. She completes screening once, and the system auto-reuses her submission for the second job.',
+    steps: [
+      {
+        label: 'Recruiter invites Jane to Job A',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th><th></th></tr>
+                <tr class="highlight">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1: Retail Screening</span></td>
+                  <td><span class="badge badge-invited">Invited</span></td>
+                  <td><button class="action-btn">View</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <p>Recruiter clicks <strong>"Send Screening Invite"</strong> for Jane on the Sales Associate — Mall position. Standard invitation flow.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry action">
+            <span class="log-time">10:02 AM</span>
+            <span class="log-label">Invite Triggered</span>
+            Recruiter invites <strong>Jane Doe</strong> to screening for <strong>Sales Associate — Mall</strong> with questionnaire <strong>Q1: Retail Screening</strong>
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">10:02 AM</span>
+            <span class="log-label">Check</span>
+            No prior submissions found for Jane + Q1 → sending standard invitation email
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">10:02 AM</span>
+            <span class="log-label">Email Sent</span>
+            Standard Invitation Email dispatched to jane.doe@email.com
+          </div>`,
+        candidate: `
+          <div class="email-mock">
+            <div class="email-top-bar">
+              <div class="email-dot r"></div>
+              <div class="email-dot y"></div>
+              <div class="email-dot g"></div>
+            </div>
+            <div class="email-meta">
+              <strong>From:</strong> Acme Corp Recruiting &lt;noreply@acme.com&gt;<br>
+              <strong>To:</strong> Jane Doe &lt;jane.doe@email.com&gt;
+            </div>
+            <div class="email-content">
+              <div class="email-subject">You're invited to complete a screening for Sales Associate — Mall</div>
+              <div class="email-text">
+                Hi <strong>Jane</strong>,<br><br>
+                Congratulations! As a next step in your application for <strong>Sales Associate — Mall Location</strong>,
+                we'd like to invite you to complete a quick screening call with our virtual assistant.<br><br>
+                <strong>Details:</strong><br>
+                • 15-minute voice call<br>
+                • Complete by: <strong>April 16, 2026</strong><br><br>
+                Click below to get started.
+              </div>
+              <span class="email-cta cta-blue">Get Started</span>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Jane completes the screening call',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th><th></th></tr>
+                <tr class="highlight-green">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1: Retail Screening</span></td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <p>Recruiter receives <strong>"Screening Completed"</strong> notification. Jane's responses are ready for evaluation.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry success">
+            <span class="log-time">2:15 PM</span>
+            <span class="log-label">Submission Received</span>
+            Jane Doe completed screening for <strong>Sales Associate — Mall</strong>. Call duration: 12m 34s. All questions answered.
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">2:15 PM</span>
+            <span class="log-label">AI Scoring</span>
+            Running AI evaluation on Jane's responses...
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">2:16 PM</span>
+            <span class="log-label">Stored</span>
+            Submission indexed: Jane Doe + Q1: Retail Screening → ready for reuse lookup
+          </div>`,
+        candidate: `
+          <div class="call-mock">
+            <div class="call-avatar">🤖</div>
+            <h3>Screening Call Complete</h3>
+            <p>Acme Corp — Virtual Screening Assistant</p>
+            <div class="call-timer">12:34</div>
+            <div style="color:#6ee7b7;font-size:0.85rem;margin-bottom:16px;">✓ All questions answered</div>
+          </div>
+          <div style="height:16px"></div>
+          <div class="thankyou-mock">
+            <div class="thankyou-icon">✅</div>
+            <h3>Thank you, Jane!</h3>
+            <p>Your screening for <strong>Sales Associate — Mall</strong> has been submitted. The recruiter will review your responses.</p>
+          </div>`
+      },
+      {
+        label: 'Recruiter invites Jane to Job B (same Q1)',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th><th></th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1: Retail Screening</span></td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+                <tr class="highlight">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1: Retail Screening</span></td>
+                  <td><span class="badge badge-invited">Invited</span></td>
+                  <td><button class="action-btn">View</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <p>Recruiter sends a screening invite for <strong>Sales Associate — Downtown</strong> — same questionnaire Q1.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry action">
+            <span class="log-time">3:00 PM</span>
+            <span class="log-label">Invite Triggered</span>
+            Recruiter invites <strong>Jane Doe</strong> to screening for <strong>Sales Associate — Downtown</strong> with <strong>Q1: Retail Screening</strong>
+          </div>
+          <div class="log-entry detect">
+            <span class="log-time">3:00 PM</span>
+            <span class="log-label">⚡ Duplicate Detected</span>
+            Match found: Jane Doe + Q1 already has a completed submission from <strong>Sales Associate — Mall</strong> (submitted today at 2:15 PM)
+          </div>
+          <div class="log-entry warn">
+            <span class="log-time">3:00 PM</span>
+            <span class="log-label">Decision</span>
+            → Triggering <strong>auto-reuse flow</strong> instead of standard invite. Sending Reuse Notification email.
+          </div>`,
+        candidate: `
+          <div class="empty-state">
+            <div class="icon">📨</div>
+            <p>System is processing the invite...<br>Jane will receive a notification momentarily.</p>
+          </div>`
+      },
+      {
+        label: 'System auto-reuses & notifies Jane',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th><th></th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1: Retail Screening</span></td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+                <tr class="highlight-purple">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1: Retail Screening</span></td>
+                  <td><span class="badge badge-reused">Reused</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <p>Job B screening instantly shows <strong>"Reused"</strong> status. Recruiter can evaluate immediately — no waiting for candidate action.</p>
+              <div class="redo-window">
+                <span class="timer-icon">⏱️</span>
+                <span>Candidate redo window open until <strong>April 16, 2026</strong>. Result may change if Jane opts to redo.</span>
+              </div>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry action">
+            <span class="log-time">3:00 PM</span>
+            <span class="log-label">Auto-Reuse</span>
+            Copying submission from Sales Associate — Mall → Sales Associate — Downtown
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">3:00 PM</span>
+            <span class="log-label">Complete</span>
+            Job B screening status → <strong>Completed (Reused)</strong>. Source: Job A submission from 2:15 PM today.
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">3:01 PM</span>
+            <span class="log-label">Email Sent</span>
+            Reuse Notification email sent to jane.doe@email.com with "Review" and "Redo" CTAs. Redo window: 14 days.
+          </div>
+          <div class="log-entry warn">
+            <span class="log-time">3:01 PM</span>
+            <span class="log-label">Redo Timer</span>
+            Redo window started. Expires: April 16, 2026. Candidate can request fresh screening until then.
+          </div>`,
+        candidate: `
+          <div class="email-mock">
+            <div class="email-top-bar">
+              <div class="email-dot r"></div>
+              <div class="email-dot y"></div>
+              <div class="email-dot g"></div>
+            </div>
+            <div class="email-meta">
+              <strong>From:</strong> Acme Corp Recruiting &lt;noreply@acme.com&gt;<br>
+              <strong>To:</strong> Jane Doe &lt;jane.doe@email.com&gt;
+            </div>
+            <div class="email-content">
+              <div class="email-subject">Your screening for Sales Associate — Downtown has been applied</div>
+              <div class="email-text">
+                Hi <strong>Jane</strong>,<br><br>
+                Good news! You were recently invited to complete a screening for <strong>Sales Associate — Downtown</strong>.
+                Since this position uses the same screening questionnaire as <strong>Sales Associate — Mall</strong>,
+                your previous answers have been <strong>automatically applied</strong>.<br><br>
+                <strong>No action is needed from your side.</strong><br><br>
+                If you'd like to provide fresh answers specifically for this role, you can redo the screening before <strong>April 16, 2026</strong>.
+              </div>
+              <span class="email-cta cta-blue">Review Screening</span>
+              <span class="email-cta cta-outline">Redo Screening</span>
+              <div class="email-note">
+                ⏱️ You have <strong>14 days</strong> to redo if you'd like fresh answers for this role.
+              </div>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Done — recruiter evaluates both',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard — Final State</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th><th>Source</th><th></th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1</span></td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td style="font-size:0.75rem;color:var(--text-dim)">Original</td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)">Q1</span></td>
+                  <td><span class="badge badge-reused">Reused</span></td>
+                  <td style="font-size:0.75rem;color:var(--purple)">From: Mall</td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="border-color:var(--success);border-left:4px solid var(--success)">
+            <div class="card-body">
+              <p><strong>✅ Result:</strong> 1 screening call by candidate → 2 jobs covered. Recruiter can independently evaluate and advance each job. Evaluations do NOT transfer between jobs.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry success">
+            <span class="log-time">Summary</span>
+            <span class="log-label">Flow Complete</span>
+            <strong>Happy Path completed successfully.</strong><br><br>
+            • Emails sent to candidate: <strong>2</strong> (1 invite + 1 reuse notification)<br>
+            • Screening calls by candidate: <strong>1</strong><br>
+            • Jobs with completed screening: <strong>2</strong><br>
+            • Candidate actions required: <strong>0</strong> (for Job B)
+          </div>`,
+        candidate: `
+          <div class="thankyou-mock">
+            <div class="thankyou-icon">🎉</div>
+            <h3>All done!</h3>
+            <p>Jane completed just <strong>1 screening call</strong> and both applications are progressing. She can redo the screening for the Downtown role within 14 days if she changes her mind.</p>
+          </div>`
+      }
+    ]
+  },
+  redo: {
+    id: 'redo',
+    label: 'B: Candidate Redoes Screening',
+    desc: 'Jane\'s submission was auto-reused for Job B, but she decides to redo the screening with fresh answers — perhaps because her motivation differs per role.',
+    steps: [
+      {
+        label: 'Starting state: Job B was auto-reused',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Status</th><th></th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+                <tr class="highlight-purple">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span class="badge badge-reused">Reused</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+              </table>
+              <div class="redo-window">
+                <span class="timer-icon">⏱️</span>
+                <span>Redo window open until <strong>April 16, 2026</strong></span>
+              </div>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry success">
+            <span class="log-time">Earlier</span>
+            <span class="log-label">State</span>
+            Job A: Completed (original)<br>Job B: Completed (reused from Job A)<br>Redo window: 12 days remaining
+          </div>`,
+        candidate: `
+          <div class="email-mock">
+            <div class="email-top-bar"><div class="email-dot r"></div><div class="email-dot y"></div><div class="email-dot g"></div></div>
+            <div class="email-meta"><strong>From:</strong> Acme Corp Recruiting</div>
+            <div class="email-content">
+              <div class="email-subject">Your screening for Sales Associate — Downtown has been applied</div>
+              <div class="email-text">
+                Your previous answers have been automatically applied. If you'd like to provide fresh answers, click below.<br><br>
+                <strong>Redo deadline: April 16, 2026</strong>
+              </div>
+              <span class="email-cta cta-blue">Review Screening</span>
+              <span class="email-cta cta-outline" style="border-color:var(--danger);color:var(--danger)">↻ Redo Screening</span>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Jane clicks "Redo Screening"',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Status</th><th></th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+                <tr class="highlight" style="background:var(--danger-light)">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span class="badge badge-redo">Redo Requested</span></td>
+                  <td></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--warn)">
+            <div class="card-body">
+              <p>⚠️ Recruiter sees status change to <strong>"Redo Requested"</strong>. The reused submission is invalidated. Any existing evaluation on the reused submission is preserved but flagged as <em>"evaluated on reused data — candidate is re-screening"</em>.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry warn">
+            <span class="log-time">4:30 PM</span>
+            <span class="log-label">Redo Requested</span>
+            Jane Doe clicked "Redo Screening" for <strong>Sales Associate — Downtown</strong>
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">4:30 PM</span>
+            <span class="log-label">Invalidate</span>
+            Reused submission for Job B → marked as <strong>superseded</strong>. Original Job A submission is unaffected.
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">4:30 PM</span>
+            <span class="log-label">New Invite</span>
+            Sending fresh screening invitation for Sales Associate — Downtown
+          </div>`,
+        candidate: `
+          <div class="landing-mock">
+            <div class="landing-header">
+              <div class="landing-logo">Acme Corp</div>
+              <span style="font-size:0.75rem;opacity:0.7">Screening</span>
+            </div>
+            <div class="landing-body">
+              <h3>Redo your screening</h3>
+              <p>You've chosen to provide fresh answers for <strong>Sales Associate — Downtown</strong>.</p>
+              <div class="landing-details">
+                <div class="detail-row"><span class="detail-label">Position</span><span class="detail-value">Sales Associate — Downtown</span></div>
+                <div class="detail-row"><span class="detail-label">Format</span><span class="detail-value">15 min voice call</span></div>
+                <div class="detail-row"><span class="detail-label">Complete by</span><span class="detail-value">April 16, 2026</span></div>
+              </div>
+              <span class="landing-cta primary">Start Screening Call</span>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Jane completes the new screening',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard — Updated</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Status</th><th>Source</th><th></th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td style="font-size:0.75rem;color:var(--text-dim)">Original</td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+                <tr class="highlight-green">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td style="font-size:0.75rem;color:var(--success)">Fresh (Redo)</td>
+                  <td><button class="action-btn">Evaluate</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="border-color:var(--success);border-left:4px solid var(--success)">
+            <div class="card-body">
+              <p><strong>✅ Result:</strong> Job B now has a <strong>fresh submission</strong>. Previous evaluations on the reused data are archived. Each job has independent screening data.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry success">
+            <span class="log-time">5:02 PM</span>
+            <span class="log-label">New Submission</span>
+            Jane Doe completed fresh screening for <strong>Sales Associate — Downtown</strong>. Call duration: 14m 12s.
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">5:02 PM</span>
+            <span class="log-label">Update</span>
+            Job B status → <strong>Completed (Fresh)</strong>. Superseded reuse record archived. Redo window closed.
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">Summary</span>
+            <span class="log-label">Redo Complete</span>
+            Job A and Job B now have <strong>independent</strong> submissions. Evaluations are separate.
+          </div>`,
+        candidate: `
+          <div class="thankyou-mock">
+            <div class="thankyou-icon">✅</div>
+            <h3>New screening submitted!</h3>
+            <p>Your fresh answers for <strong>Sales Associate — Downtown</strong> have been recorded. The recruiter will review your updated responses.</p>
+          </div>`
+      }
+    ]
+  },
+  pending: {
+    id: 'pending',
+    label: 'C: Both Jobs Get Invites (Emma\'s Fix)',
+    desc: 'Jane is invited to Job B before completing Job A. Per Emma\'s feedback: both jobs get a standard invite, with a note that completing either one covers both.',
+    steps: [
+      {
+        label: 'Jane invited to Job A — hasn\'t started yet',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th></tr>
+                <tr class="highlight">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem">Q1</span></td>
+                  <td><span class="badge badge-invited">Invited</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry action">
+            <span class="log-time">9:00 AM</span>
+            <span class="log-label">Invite Sent</span>
+            Jane invited to Job A screening. Status: <strong>Invited</strong> (not started).
+          </div>`,
+        candidate: `
+          <div class="email-mock">
+            <div class="email-top-bar"><div class="email-dot r"></div><div class="email-dot y"></div><div class="email-dot g"></div></div>
+            <div class="email-meta"><strong>From:</strong> Acme Corp Recruiting</div>
+            <div class="email-content">
+              <div class="email-subject">You're invited to complete a screening for Sales Associate — Mall</div>
+              <div class="email-text">Standard screening invitation. Jane hasn't opened it yet.</div>
+              <span class="email-cta cta-blue">Get Started</span>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Recruiter invites Jane to Job B (same Q1) — Jane hasn\'t completed Job A',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Questionnaire</th><th>Status</th></tr>
+                <tr>
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem">Q1</span></td>
+                  <td><span class="badge badge-invited">Invited</span></td>
+                </tr>
+                <tr class="highlight">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span style="font-family:var(--mono);font-size:0.75rem">Q1</span></td>
+                  <td><span class="badge badge-invited">Invited</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry action">
+            <span class="log-time">10:30 AM</span>
+            <span class="log-label">Invite Triggered</span>
+            Recruiter invites Jane to Job B with Q1.
+          </div>
+          <div class="log-entry detect">
+            <span class="log-time">10:30 AM</span>
+            <span class="log-label">⚡ Duplicate Detected</span>
+            Same Q1 but <strong>no completed submission yet</strong>. Job A is still "Invited."
+          </div>
+          <div class="log-entry warn">
+            <span class="log-time">10:30 AM</span>
+            <span class="log-label">Decision</span>
+            → Send <strong>standard invite for Job B</strong> (Emma's approach) with a note that completing <em>either</em> call will cover both jobs.
+          </div>`,
+        candidate: `
+          <div class="email-mock">
+            <div class="email-top-bar"><div class="email-dot r"></div><div class="email-dot y"></div><div class="email-dot g"></div></div>
+            <div class="email-meta"><strong>From:</strong> Acme Corp Recruiting</div>
+            <div class="email-content">
+              <div class="email-subject">You're invited to complete a screening for Sales Associate — Downtown</div>
+              <div class="email-text">
+                Hi <strong>Jane</strong>,<br><br>
+                You've been invited to complete a screening for <strong>Sales Associate — Downtown</strong>.<br><br>
+                <strong>Details:</strong><br>
+                • 15-minute voice call<br>
+                • Complete by: April 16, 2026
+              </div>
+              <span class="email-cta cta-blue">Get Started</span>
+              <div class="email-note">
+                💡 This screening also covers your application for <strong>Sales Associate — Mall</strong>. You only need to complete it <strong>once</strong>.
+              </div>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Jane completes screening via Job B\'s link',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Status</th><th>Source</th></tr>
+                <tr class="highlight-purple">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Mall</td>
+                  <td><span class="badge badge-reused">Reused</span></td>
+                  <td style="font-size:0.75rem;color:var(--purple)">From: Downtown</td>
+                </tr>
+                <tr class="highlight-green">
+                  <td class="candidate-name">Jane Doe</td>
+                  <td class="job-name">Sales Associate — Downtown</td>
+                  <td><span class="badge badge-completed">Completed</span></td>
+                  <td style="font-size:0.75rem;color:var(--text-dim)">Original</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="border-color:var(--success);border-left:4px solid var(--success)">
+            <div class="card-body">
+              <p><strong>✅ Result:</strong> Jane chose to complete via Job B's link. Job A is auto-filled. The candidate had <strong>full agency</strong> to pick which role to start from.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry success">
+            <span class="log-time">11:45 AM</span>
+            <span class="log-label">Submission</span>
+            Jane completed screening via <strong>Job B's invite link</strong>. Submission recorded for Sales Associate — Downtown.
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">11:45 AM</span>
+            <span class="log-label">Auto-Propagate</span>
+            Same Q1 submission auto-applied to <strong>Sales Associate — Mall</strong> (was "Invited" → now "Reused").
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">Summary</span>
+            <span class="log-label">✓ Emma's Approach</span>
+            Candidate had <strong>2 standard invites</strong> and chose which to start from. No silent failures. Both jobs resolved.
+          </div>`,
+        candidate: `
+          <div class="thankyou-mock">
+            <div class="thankyou-icon">🎉</div>
+            <h3>Both applications are set!</h3>
+            <p>Your screening covers both <strong>Sales Associate — Downtown</strong> and <strong>Sales Associate — Mall</strong>. No further action needed.</p>
+          </div>`
+      }
+    ]
+  },
+  batch: {
+    id: 'batch',
+    label: 'D: 5 Jobs at Once (Emma\'s Fix)',
+    desc: 'Jane applies to 5 retail jobs simultaneously. Per Emma\'s feedback: all 5 get a standard invite (no suppression), each noting that completing any one covers all.',
+    steps: [
+      {
+        label: 'AE invites Jane to 5 jobs with same Q1',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard — Bulk Invite</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Q</th><th>Status</th></tr>
+                <tr class="highlight"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Mall</td><td style="font-family:var(--mono);font-size:0.7rem">Q1</td><td><span class="badge badge-invited">Invited</span></td></tr>
+                <tr class="highlight"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Downtown</td><td style="font-family:var(--mono);font-size:0.7rem">Q1</td><td><span class="badge badge-invited">Invited</span></td></tr>
+                <tr class="highlight"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Airport</td><td style="font-family:var(--mono);font-size:0.7rem">Q1</td><td><span class="badge badge-invited">Invited</span></td></tr>
+                <tr class="highlight"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Station</td><td style="font-family:var(--mono);font-size:0.7rem">Q1</td><td><span class="badge badge-invited">Invited</span></td></tr>
+                <tr class="highlight"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Harbor</td><td style="font-family:var(--mono);font-size:0.7rem">Q1</td><td><span class="badge badge-invited">Invited</span></td></tr>
+              </table>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry action">
+            <span class="log-time">9:00 AM</span>
+            <span class="log-label">Bulk Invite</span>
+            Automation Engine triggered 5 screening invites for Jane Doe, all with <strong>Q1: Retail Screening</strong>.
+          </div>
+          <div class="log-entry detect">
+            <span class="log-time">9:00 AM</span>
+            <span class="log-label">⚡ Batch Detected</span>
+            5 invites, same candidate, same Q1, no prior submission.
+          </div>
+          <div class="log-entry warn">
+            <span class="log-time">9:00 AM</span>
+            <span class="log-label">Decision</span>
+            → Send <strong>standard invite for ALL 5 jobs</strong> (Emma's approach). Each email notes the other jobs share the same screening.
+          </div>`,
+        candidate: `
+          <div class="card" style="border-left:3px solid var(--accent)">
+            <div class="card-body">
+              <p style="font-size:0.82rem"><strong>Jane's inbox: 5 emails</strong> (one per job), each with a clear CTA and a note:</p>
+            </div>
+          </div>
+          <div class="email-mock" style="margin-top:8px">
+            <div class="email-top-bar"><div class="email-dot r"></div><div class="email-dot y"></div><div class="email-dot g"></div></div>
+            <div class="email-meta"><strong>From:</strong> Acme Corp Recruiting</div>
+            <div class="email-content">
+              <div class="email-subject">You're invited to complete a screening for Sales Assoc — Downtown</div>
+              <div class="email-text">
+                Hi <strong>Jane</strong>,<br><br>
+                Complete a 15-minute screening call for <strong>Sales Assoc — Downtown</strong>.
+              </div>
+              <span class="email-cta cta-blue">Get Started</span>
+              <div class="email-note">
+                💡 This screening also covers your applications for <strong>Mall, Airport, Station, Harbor</strong>. Complete it once — answers apply to all 5 positions.
+              </div>
+            </div>
+          </div>`
+      },
+      {
+        label: 'Jane picks "Downtown" and completes screening',
+        recruiter: `
+          <div class="card">
+            <div class="card-header"><h4>📋 Screening Dashboard</h4></div>
+            <div class="card-body">
+              <table class="dash-table">
+                <tr><th>Candidate</th><th>Job</th><th>Status</th><th>Source</th></tr>
+                <tr class="highlight-purple"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Mall</td><td><span class="badge badge-reused">Reused</span></td><td style="font-size:0.7rem;color:var(--purple)">From: Downtown</td></tr>
+                <tr class="highlight-green"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Downtown</td><td><span class="badge badge-completed">Completed</span></td><td style="font-size:0.7rem;color:var(--text-dim)">Original</td></tr>
+                <tr class="highlight-purple"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Airport</td><td><span class="badge badge-reused">Reused</span></td><td style="font-size:0.7rem;color:var(--purple)">From: Downtown</td></tr>
+                <tr class="highlight-purple"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Station</td><td><span class="badge badge-reused">Reused</span></td><td style="font-size:0.7rem;color:var(--purple)">From: Downtown</td></tr>
+                <tr class="highlight-purple"><td class="candidate-name">Jane Doe</td><td class="job-name">Sales Assoc — Harbor</td><td><span class="badge badge-reused">Reused</span></td><td style="font-size:0.7rem;color:var(--purple)">From: Downtown</td></tr>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="border-color:var(--success);border-left:4px solid var(--success)">
+            <div class="card-body">
+              <p><strong>✅ All 5 jobs resolved.</strong> Jane picked the role she cared most about — Downtown. No silent failures.</p>
+            </div>
+          </div>`,
+        system: `
+          <div class="log-entry success">
+            <span class="log-time">10:20 AM</span>
+            <span class="log-label">Submission</span>
+            Jane completed screening via <strong>Downtown</strong> invite link.
+          </div>
+          <div class="log-entry action">
+            <span class="log-time">10:20 AM</span>
+            <span class="log-label">Auto-Propagate</span>
+            Applying submission to 4 remaining jobs: Mall, Airport, Station, Harbor...
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">10:20 AM</span>
+            <span class="log-label">✓ All Done</span>
+            5/5 jobs now have screening data. 4 reuse notifications sent to candidate.
+          </div>
+          <div class="log-entry success">
+            <span class="log-time">Summary</span>
+            <span class="log-label">Batch Result</span>
+            • Emails total: <strong>5 invites + 4 reuse notifications = 9</strong><br>
+            • Calls by candidate: <strong>1</strong><br>
+            • Jobs covered: <strong>5</strong><br>
+            • Candidate chose which role to start from: <strong>Yes ✓</strong>
+          </div>`,
+        candidate: `
+          <div class="thankyou-mock">
+            <div class="thankyou-icon">🎉</div>
+            <h3>5 applications — 1 call!</h3>
+            <p>Your screening for <strong>Downtown</strong> has been applied to all 5 positions. You can redo for any specific role within 14 days.</p>
+          </div>
+          <div style="height:12px"></div>
+          <div class="card" style="border-left:3px solid var(--warn)">
+            <div class="card-body">
+              <p style="font-size:0.8rem;color:var(--text-secondary)">Jane receives 4 reuse notification emails (one per auto-filled job), each with a "Redo" option if she wants fresh answers for that specific role.</p>
+            </div>
+          </div>`
+      }
+    ]
+  }
+};
+
+let currentScenario = 'happy';
+let currentStep = 0;
+
+function init() {
+  renderScenarioTabs();
+  renderStep();
+}
+
+function renderScenarioTabs() {
+  const bar = document.getElementById('scenarioBar');
+  bar.innerHTML = Object.values(SCENARIOS).map(s =>
+    `<button class="scenario-tab ${s.id === currentScenario ? 'active' : ''}" onclick="switchScenario('${s.id}')">${s.label}</button>`
+  ).join('');
+}
+
+function switchScenario(id) {
+  currentScenario = id;
+  currentStep = 0;
+  renderScenarioTabs();
+  renderStep();
+}
+
+function renderStep() {
+  const scenario = SCENARIOS[currentScenario];
+  const step = scenario.steps[currentStep];
+  const total = scenario.steps.length;
+
+  document.getElementById('scenarioDesc').innerHTML =
+    `<span class="desc-icon">💡</span><span>${scenario.desc}</span>`;
+
+  document.getElementById('stepLabel').textContent =
+    `Step ${currentStep + 1} of ${total}:  ${step.label}`;
+
+  const dots = document.getElementById('stepDots');
+  dots.innerHTML = scenario.steps.map((_, i) =>
+    `<div class="step-dot ${i === currentStep ? 'active' : i < currentStep ? 'completed' : ''}" onclick="goToStep(${i})"></div>`
+  ).join('');
+
+  document.getElementById('recruiterContent').innerHTML = step.recruiter;
+  document.getElementById('systemContent').innerHTML = step.system;
+  document.getElementById('candidateContent').innerHTML = step.candidate;
+
+  document.getElementById('prevBtn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+  document.getElementById('nextBtn').textContent = currentStep === total - 1 ? '✓ Done' : 'Next →';
+  document.getElementById('nextBtn').onclick = currentStep === total - 1 ? () => {} : nextStep;
+}
+
+function nextStep() {
+  const total = SCENARIOS[currentScenario].steps.length;
+  if (currentStep < total - 1) { currentStep++; renderStep(); }
+}
+
+function prevStep() {
+  if (currentStep > 0) { currentStep--; renderStep(); }
+}
+
+function goToStep(i) {
+  currentStep = i;
+  renderStep();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') nextStep();
+  if (e.key === 'ArrowLeft') prevStep();
+});
+
+init();
+</script>
+</body>
+</html>
